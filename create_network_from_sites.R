@@ -1,12 +1,14 @@
 ################################
 #
 #
-# Creating a network of lines for metapopulation 
+# Distance cost of urban matrix 
 # Project
 #
 # Written by Travis Gallo and Mason Fidino
 # 8/8/2016
 ################################
+
+# Step 1: Creating a network of lines between sites 
 
 ################################
 ### User specified functions ###
@@ -164,6 +166,35 @@ all_features_df <- SpatialLinesDataFrame(all_features, all_station_combos, match
 
 # Write all_features_df as a shape file for GIS
 writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines_final",driver = "ESRI Shapefile")
+
+
+######################################################
+# Step 2: Calculate the length of each line that intersects with land use polygons
+######################################################
+
+#######THIS IS A WORK IN PROGRESS#############
+
+# Read in land use polygons
+# These take a while to load, so if you are just testing use "low_use"
+#high_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_high", proj4string=CRS("+proj=longlat +datum=WGS84"))
+#med_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_mid", proj4string=CRS("+proj=longlat +datum=WGS84"))
+low_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_low", proj4string=CRS("+proj=longlat +datum=WGS84"))
+ag_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_ag", proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+x=readOGR("T:/PEOPLE/TravisGallo/GIS", "landuse_low")
+
+#plot land use categories to test
+#plot(high_use, border="red")
+plot(ag_use, border="brown")
+#plot(med_use, border="pink")
+plot(low_use, border="grey")
+lines(network, add=TRUE)
+
+#read in lines shapefile from ArcGIS with appropriate projection
+network=readOGR("T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines")
+
+crs(all_features_df)=crs(x)
+y=intersect(x,network)
 
 
 ### END OF CODE
