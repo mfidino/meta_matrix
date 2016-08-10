@@ -6,6 +6,7 @@
 #
 # Written by Travis Gallo and Mason Fidino
 # 8/8/2016
+# Last Updated: 8/10/16
 ################################
 
 # Step 1: Creating a network of lines between sites 
@@ -54,11 +55,11 @@ to_load <- c("sp", "maptools", "raster", "rgdal", "rgeos")
 package_load(to_load)
 
 #read in sites and transform them from UTM to Lat-Long
-sites <- readShapePoints("T:/CENTERS/Urban Wildlife/UWI_GIS/ActiveStations/XYActiveStationsWI16.shp")
-
+sites <- readShapePoints("T:/PEOPLE/TravisGallo/GIS/meta_pop_sites.shp")
+plot(sites)
 
 # get the station ID's from the data in the sites s4 object
-station_id <- sites@data$StationID
+station_id <- sites@data$Sites
 
 # make every unique combination of sites for the network
 # Note: this returns a 2 by # of combination matrix, we 
@@ -80,36 +81,18 @@ all_features <- make_lines(sites)
 all_features_df <- SpatialLinesDataFrame(all_features, all_station_combos, match.ID = FALSE)
 
 # Write all_features_df as a shape file for GIS
-writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines_final",driver = "ESRI Shapefile")
+writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS", "meta_pop_network",driver = "ESRI Shapefile")
 
 
 ######################################################
 # Step 2: Calculate the length of each line that intersects with land use polygons
 ######################################################
 
-#######THIS IS A WORK IN PROGRESS#############
+# Creating segments of lines that overlap with land cover types was done in ArcGIS
+# Measuring those segments was done in ArgGIS
 
-# Read in land use polygons
-# These take a while to load, so if you are just testing use "low_use"
-#high_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_high", proj4string=CRS("+proj=longlat +datum=WGS84"))
-#med_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_mid", proj4string=CRS("+proj=longlat +datum=WGS84"))
-low_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_low", proj4string=CRS("+proj=longlat +datum=WGS84"))
-ag_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_ag", proj4string=CRS("+proj=longlat +datum=WGS84"))
-
-x=readOGR("T:/PEOPLE/TravisGallo/GIS", "landuse_low")
-
-#plot land use categories to test
-#plot(high_use, border="red")
-plot(ag_use, border="brown")
-#plot(med_use, border="pink")
-plot(low_use, border="grey")
-lines(network, add=TRUE)
-
-#read in lines shapefile from ArcGIS with appropriate projection
-network=readOGR("T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines")
-
-crs(all_features_df)=crs(x)
-y=intersect(x,network)
-
+#####################################################
+# Step 3: Create distance matrix for each land cover type
+#####################################################
 
 ### END OF CODE
