@@ -1,24 +1,38 @@
 ################################
 #
 #
-# Creating a network of lines for metapopulation 
+# Distance cost of urban matrix 
 # Project
 #
 # Written by Travis Gallo and Mason Fidino
 # 8/8/2016
 ################################
 
+# Step 1: Creating a network of lines between sites 
+
+################################
+### User specified functions ###
+################################
+
+# Load appropriate packages
+
+package_load<-function(packages = NULL, quiet=TRUE, verbose=FALSE, warn.conflicts=FALSE){
+  
+  # download required packages if they're not already
+  
+  pkgsToDownload<- packages[!(packages  %in% installed.packages()[,"Package"])]
+  if(length(pkgsToDownload)>0)
+    install.packages(pkgsToDownload, repos="http://cran.us.r-project.org", quiet=quiet, verbose=verbose)
+  
+  # then load them
+  for(i in 1:length(packages))
+    require(packages[i], character.only=T, quietly=quiet, warn.conflicts=warn.conflicts)
+}
+
 
 ######################
 ### Working script ###
 ######################
-
-# load the necessary functions, these are
-# package_load, which loads our packages and/or downloads
-# them if necessary and the make_lines function. Which
-# will make the SpatialLines objects if we supply it
-# a SpatialPointsDataFrame
-source("create_network_from_sites_source_functions.R")
 
 # Packages to load
 to_load <- c("sp", "maptools", "raster", "rgdal", "rgeos")
@@ -28,6 +42,7 @@ package_load(to_load)
 
 #read in sites and transform them from UTM to Lat-Long
 sites <- readShapePoints("T:/CENTERS/Urban Wildlife/UWI_GIS/ActiveStations/XYActiveStationsWI16.shp")
+
 
 # get the station ID's from the data in the sites s4 object
 station_id <- sites@data$StationID
@@ -42,8 +57,106 @@ all_station_combos <- data.frame(t(combn(as.character(station_id), 2)))
 # change the column names to something that makes sense
 colnames(all_station_combos) <- c("site1", "site2")
 
-# use the make_lines function to create the SpatialLines object
-all_features <- make_lines(sites)
+
+# make a new copy of sites so that we can
+# start removing a row from the data
+# with every iteration of the first
+# for loop
+points <- sites
+
+# determine the total number of sites
+n_sites <- length(sites)
+
+# start creating lines between sites
+for(i in 1:(n_sites - 1)) {
+  
+  # At the first iteration
+  if(i == 1){ 
+    
+    # create the j vector which is used to give lines a unique name.
+    # set to NULL here so that we can alter flow with an
+    # ifelse loop later.
+    j <- NULL
+    
+    # create all_lines list to store all of the lines
+    all_lines <- list()
+    
+    # end if
+  }
+  
+  # At the last iteration all lines have been made
+  # so we can go ahead and stop here.
+  if(i == n_sites){
+    stop("lines created")
+  }
+  
+  # The apply function create lines from the coords in the first
+  # row of points to all other points.  We always calculate from
+  # the first row because we remove that specific row at the end
+  # of the i loop. However, we cannot use the apply function
+  # when we only have two rows sites left in points so we 
+  # use this if else statement.
+  if(i < (n_sites - 1)){
+  l1 <- apply(points@coords[-1,], 1, function(x) Line(rbind(x, points@coords[1,])))
+  }else{
+    l1 <- list(Line(rbind(points@coords[-1,], points@coords[1,])))
+  }
+  
+  # During the first iteration when j = NULL
+  if(length(j)==0){
+    
+    # Determine the number of lines in the l1 list
+    n_lines <- length(l1)
+    
+    # Give the j vector some unique values
+    j <- 1:n_lines
+    
+    # Create the list long enough to hold these lines
+    loop_list <- vector("list", length = n_lines)
+    
+    # If j already has values (when i > 1)
+  }else{
+    
+    # Determine the number of lines in the l1 list
+    n_lines <- length(l1)
+    
+    # Give the j vector n_lines unique values based on the last number
+    # of j from the previous iteration.
+    j <- seq(from = c(last_number+1), by = 1, length.out = n_lines)
+    
+    # Create a list long enough to store these values
+    loop_list <- vector("list", length = n_lines)
+    
+    # end else statement
+  }
+  
+  # For the number of lines in a particular iteration
+  for(k in 1:n_lines){
+    
+    # Change them to Line class object
+    # and give them a unique name based
+    # off of the vector j.
+    loop_list[[k]] <- Lines(l1[[k]], ID = paste0("line_", j[k]))
+    
+    # end k loop
+  }
+  
+  # append loop_list to the end of all_lines
+  all_lines <- c(all_lines, loop_list)
+  
+  # remove the first row from points, we don't 
+  # need to create lines to that point anymore
+  # because we have them to all other points
+  points <- points[-1,]
+  
+  # get the last number of vector j
+  last_number <- tail(j, 1)
+  
+  # end i loop
+}
+
+# Turn all of these lines into a SpatialLines object
+all_features <- SpatialLines(LinesList = all_lines)
 
 # Convert SpatialLines to a SpatialLinesDataFrame and tack on
 # the all_station_combos data.frame so we know where the lines
@@ -51,9 +164,37 @@ all_features <- make_lines(sites)
 # do not have to match.ID
 all_features_df <- SpatialLinesDataFrame(all_features, all_station_combos, match.ID = FALSE)
 
-
 # Write all_features_df as a shape file for GIS
 writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines_final",driver = "ESRI Shapefile")
+
+
+######################################################
+# Step 2: Calculate the length of each line that intersects with land use polygons
+######################################################
+
+#######THIS IS A WORK IN PROGRESS#############
+
+# Read in land use polygons
+# These take a while to load, so if you are just testing use "low_use"
+#high_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_high", proj4string=CRS("+proj=longlat +datum=WGS84"))
+#med_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_mid", proj4string=CRS("+proj=longlat +datum=WGS84"))
+low_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_low", proj4string=CRS("+proj=longlat +datum=WGS84"))
+ag_use=readShapePoly("T:/PEOPLE/TravisGallo/GIS/landuse_ag", proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+x=readOGR("T:/PEOPLE/TravisGallo/GIS", "landuse_low")
+
+#plot land use categories to test
+#plot(high_use, border="red")
+plot(ag_use, border="brown")
+#plot(med_use, border="pink")
+plot(low_use, border="grey")
+lines(network, add=TRUE)
+
+#read in lines shapefile from ArcGIS with appropriate projection
+network=readOGR("T:/PEOPLE/TravisGallo/GIS/network", "all_site_lines")
+
+crs(all_features_df)=crs(x)
+y=intersect(x,network)
 
 
 ### END OF CODE
