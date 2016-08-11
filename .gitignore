@@ -52,7 +52,7 @@ Temporary Items
 *.RData
 =======
 # remove a bunch of R project files from this repo
-.Rproj
+*.Rproj
 .Rproj.user
-.RData
+*.RData
 >>>>>>> 1450ea90ece7a3feb3bcc3d739323517e3ba1c7f
