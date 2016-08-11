@@ -46,5 +46,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-*.Rproj
-*.Rproj*+
+# remove a bunch of R project files from this repo
+.Rproj
+.Rproj.user
+.RData
