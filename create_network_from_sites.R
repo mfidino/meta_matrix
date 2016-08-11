@@ -83,6 +83,10 @@ all_features_df <- SpatialLinesDataFrame(all_features, all_station_combos, match
 # Write all_features_df as a shape file for GIS
 writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS", "meta_pop_network",driver = "ESRI Shapefile")
 
+# write the data from all_features_df so we can easily access it in the future
+
+write.table(all_features_df@data, "T:/PEOPLE/TravisGallo/MetaPopProject/Data/all_lines_names_from_step_1.txt", 
+            row.names = FALSE, sep = "\t")
 
 ######################################################
 # Step 2: Calculate the length of each line that intersects with land use polygons
@@ -109,7 +113,8 @@ line_distance= function (x){
 	as.data.frame(dist)
 }
 
-land_covers=c("developed_openspace","developed_high", developed_mid", "greenspace", "water", "agriculture")
+
+land_covers=c("developed_openspace","developed_high", "developed_mid", "greenspace", "water", "agriculture")
 
 # Currently set up to just work with developed open space
 line_dist=list()
@@ -117,6 +122,14 @@ for (i in 1:length(land_covers)){
 	line_dist[[i]]=line_distance("developed_openspace")
 } 
 
+# Make the distance matrices with line_dist
+
+# read in all potential lines
+all_lines <- read.table("T:/PEOPLE/TravisGallo/MetaPopProject/Data/all_lines_names_from_step_1.txt",
+                        header = TRUE)
+
+# lapply over all the different distances
+all_d_mats <- lapply(line_dist, FUN = f_into_m, all_lines = all_lines)
 
 ### Developed Open Space Segments ###
 

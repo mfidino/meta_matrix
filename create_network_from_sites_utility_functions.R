@@ -19,7 +19,13 @@
 ### User specified functions ###
 ################################
 
-# Load appropriate packages
+
+#_______________________________________#
+# package_load package_load package_load#
+#_______________________________________#
+
+# Loads appropriate packages when given a character vector
+# of packages in the 'packages' arguement.
 
 package_load<-function(packages = NULL, quiet=TRUE, verbose=FALSE, warn.conflicts=FALSE){
   
@@ -34,7 +40,12 @@ package_load<-function(packages = NULL, quiet=TRUE, verbose=FALSE, warn.conflict
     require(packages[i], character.only=T, quietly=quiet, warn.conflicts=warn.conflicts)
 }
 
-# Create the line data.frame
+#____________________________________________#
+# make_lines make_lines make_lines make_lines#
+#____________________________________________#
+
+# If you give this the sites as a SpatialPointsDateFrame
+# it will return a SpatialLines object. Only has one arguement. "sites".
 
 make_lines <- function(sites = NULL){
   # make a new copy of sites so that we can
@@ -141,3 +152,55 @@ make_lines <- function(sites = NULL){
   return(all_features)
 }
 
+
+#_____________________________________________#
+# f_into_m f_into_m f_into_m f_into_m f_into_m#
+#_____________________________________________#
+
+# creates a distance matrix if you give it one of the data.frames
+# from the list object created by line_distance.  You also need 
+# to give it all_features_df@data as the all_lines arguement.
+
+f_into_m <- function(meas_dist = NULL, all_lines = NULL){
+
+
+  
+  
+  # make a table of the first site names
+  site_num <- data.frame(table(all_lines$site1))
+  site_num <- site_num[order(site_num$Freq, decreasing = TRUE),]
+  
+  # get first site
+  first_site <- site_num$Var1[1]
+  
+  # get site names
+  first_site_connections <- all_lines[all_lines$site1==first_site,]
+  site_names <- c(as.character(first_site_connections$site1[1]),
+                  as.character(first_site_connections$site2))
+  
+  # determine number of sites
+  n_sites <- length(site_names)
+  
+  # make the distance matrix
+  d_mat <- matrix(0, nrow = n_sites, ncol = n_sites, 
+                  dimnames = list(site1 = site_names,
+                                  site2 = site_names))
+  
+  # fill d_mat
+  for(i in 1:(n_sites - 1)){
+    # get dists for site i
+    
+    site_i_dists <- meas_dist[which(meas_dist$site1 == site_names[i]),]
+    site_i_dists$site2 <- factor(site_i_dists$site2, levels = site_names)
+    site_i_dists[order(site_i_dists$site2),]
+    d_mat[i,which(colnames(d_mat) %in% as.character(site_i_dists$site2))] <-
+      site_i_dists$seg_dist[order(site_i_dists$site2)]
+  }
+  
+  # copy to the lower triange
+  d_mat[lower.tri(d_mat)] <- t(d_mat)[lower.tri(d_mat)]
+  
+  # return the distance matrix
+  
+  return(d_mat)
+}
