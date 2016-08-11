@@ -95,4 +95,39 @@ writeOGR(all_features_df,"T:/PEOPLE/TravisGallo/GIS", "meta_pop_network",driver 
 # Step 3: Create distance matrix for each land cover type
 #####################################################
 
+# Pull .csv files created in ArcGIS and sum distances across line segments
+
+line_distance= function (x){
+	# Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
+	segs=read.csv(paste("T:/PEOPLE/TravisGallo/MetaPopProject/Data/",x,".csv", sep=""))
+
+	# Sum across little segments for each line
+	dist=aggregate(seg_dist~site1*site2, data=segs, FUN=sum)
+
+	# Convert to meters
+	dist[,3]=dist[,3] / 100
+	as.data.frame(dist)
+}
+
+land_covers=c("developed_openspace","developed_high", developed_mid", "greenspace", "water", "agriculture")
+
+# Currently set up to just work with developed open space
+line_dist=list()
+for (i in 1:length(land_covers)){
+	line_dist[[i]]=line_distance("developed_openspace")
+} 
+
+
+### Developed Open Space Segments ###
+
+# Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
+dev_openspace_segs=read.csv("T:/PEOPLE/TravisGallo/MetaPopProject/Data/developed_openspace.csv")
+
+# Sum across little segments for each line
+dev_openspace_dist=aggregate(seg_dist~site1*site2, data=dev_openspace_segs, FUN=sum)
+
+# Convert to meters
+dev_openspace_dist[,3]=dev_openspace_dist[,3] / 100
+
+
 ### END OF CODE
