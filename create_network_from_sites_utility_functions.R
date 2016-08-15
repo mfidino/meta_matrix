@@ -152,6 +152,25 @@ make_lines <- function(sites = NULL){
   return(all_features)
 }
 
+#_____________________________________________#
+# line_distance line_distance line_distance   #
+#_____________________________________________#
+
+
+# Pulls .csv files created in ArcGIS and sum distances across line segments
+
+line_distance= function (land_cover = NULL){
+  # Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
+  segs=read.csv(paste0("T:/PEOPLE/TravisGallo/MetaPopProject/Data/",land_cover,".csv"))
+  
+  # Sum across little segments for each line
+  dist=aggregate(seg_dist~site1*site2, data=segs, FUN=sum)
+  
+  # Convert to meters
+  dist[,3]=dist[,3] / 100
+  as.data.frame(dist)
+}
+
 
 #_____________________________________________#
 # f_into_m f_into_m f_into_m f_into_m f_into_m#
@@ -190,11 +209,11 @@ f_into_m <- function(meas_dist = NULL, all_lines = NULL){
   for(i in 1:(n_sites - 1)){
     # get dists for site i
     
-    site_i_dists <- meas_dist[which(meas_dist$site1 == site_names[i]),]
+    site_i_dists <- meas_dist[which(as.character(meas_dist$site1) == site_names[i]),]
     site_i_dists$site2 <- factor(site_i_dists$site2, levels = site_names)
-    site_i_dists[order(site_i_dists$site2),]
+    site_i_dists <- site_i_dists[order(site_i_dists$site2),]
     d_mat[i,which(colnames(d_mat) %in% as.character(site_i_dists$site2))] <-
-      site_i_dists$seg_dist[order(site_i_dists$site2)]
+    site_i_dists$seg_dist[order(site_i_dists$site2)]
   }
   
   # copy to the lower triange

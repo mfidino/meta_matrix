@@ -11,29 +11,6 @@
 
 # Step 1: Creating a network of lines between sites 
 
-################################
-### User specified functions ###
-################################
-
-# Load appropriate packages
-
-package_load<-function(packages = NULL, quiet=TRUE, verbose=FALSE, warn.conflicts=FALSE){
-  
-  # download required packages if they're not already
-  
-  pkgsToDownload<- packages[!(packages  %in% installed.packages()[,"Package"])]
-  if(length(pkgsToDownload)>0)
-    install.packages(pkgsToDownload, repos="http://cran.us.r-project.org", quiet=quiet, verbose=verbose)
-  
-  # then load them
-  for(i in 1:length(packages))
-    require(packages[i], character.only=T, quietly=quiet, warn.conflicts=warn.conflicts)
-}
-
-
-######################
-### Working script ###
-######################
 
 # load the functions from create_network_from_sites_source_functions.R
 source("create_network_from_sites_utility_functions.R")
@@ -99,25 +76,12 @@ write.table(all_features_df@data, "T:/PEOPLE/TravisGallo/MetaPopProject/Data/all
 # Step 3: Create distance matrix for each land cover type
 #####################################################
 
-# Pull .csv files created in ArcGIS and sum distances across line segments
-
-line_distance= function (x){
-	# Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
-	segs=read.csv(paste("T:/PEOPLE/TravisGallo/MetaPopProject/Data/",x,".csv", sep=""))
-
-	# Sum across little segments for each line
-	dist=aggregate(seg_dist~site1*site2, data=segs, FUN=sum)
-
-	# Convert to meters
-	dist[,3]=dist[,3] / 100
-	as.data.frame(dist)
-}
 
 
 land_covers=c("developed_openspace","developed_high", "developed_mid", "greenspace", "water", "agriculture")
 
 # Currently set up to just work with developed open space
-line_dist=list()
+line_dist=vector("list", length = length(land_covers))
 for (i in 1:length(land_covers)){
 	line_dist[[i]]=line_distance("developed_openspace")
 } 

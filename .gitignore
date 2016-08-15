@@ -55,4 +55,5 @@ Temporary Items
 *.Rproj
 .Rproj.user
 *.RData
+.Rhistory
 >>>>>>> 1450ea90ece7a3feb3bcc3d739323517e3ba1c7f
