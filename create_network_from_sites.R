@@ -83,7 +83,7 @@ land_covers=c("developed_openspace","developed_high", "developed_mid", "greenspa
 # Currently set up to just work with developed open space
 line_dist=vector("list", length = length(land_covers))
 for (i in 1:length(land_covers)){
-	line_dist[[i]]=line_distance("developed_openspace")
+	line_dist[[i]]=line_distance(land_covers[i])
 } 
 
 # Make the distance matrices with line_dist
@@ -95,16 +95,16 @@ all_lines <- read.table("T:/PEOPLE/TravisGallo/MetaPopProject/Data/all_lines_nam
 # lapply over all the different distances
 all_d_mats <- lapply(line_dist, FUN = f_into_m, all_lines = all_lines)
 
-### Developed Open Space Segments ###
+# save the distance matrices
 
-# Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
-dev_openspace_segs=read.csv("T:/PEOPLE/TravisGallo/MetaPopProject/Data/developed_openspace.csv")
 
-# Sum across little segments for each line
-dev_openspace_dist=aggregate(seg_dist~site1*site2, data=dev_openspace_segs, FUN=sum)
+for(i in 1:length(all_d_mats)){
+  write.table(all_d_mats[[i]], 
+              paste0("T:/PEOPLE/TravisGallo/MetaPopProject/Data/", land_covers[i], "_dmat.txt"),
+              sep = "\t")
+}
 
-# Convert to meters
-dev_openspace_dist[,3]=dev_openspace_dist[,3] / 100
+### Now that these are saved we can start working on the JAGS code
 
 
 ### END OF CODE
