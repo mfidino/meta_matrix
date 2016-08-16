@@ -28,8 +28,6 @@ for(i in 1:(nspec)){
 
 			# likelihood
 		z[i,k,t] ~ dbern(psi[i,k,t])
-
-
 		}
 
 	}
@@ -89,8 +87,6 @@ for(i in 1:(nspec)){
 	}
 
 }
-# first season
-
 
 
 }
