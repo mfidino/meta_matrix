@@ -8,7 +8,7 @@
 #
 # 8/10/2016
 #
-#
+# Last Updated 11/14/2016
 #
 #
 
@@ -161,13 +161,12 @@ make_lines <- function(sites = NULL){
 
 line_distance= function (land_cover = NULL){
   # Read in *** REMEMBER THESE DATA ARE IN CENTIMETERS****
-  segs=read.csv(paste0("T:/PEOPLE/TravisGallo/MetaPopProject/Data/",land_cover,".csv"))
-  
+  segs=read.csv(paste0("~/Documents/Transect Study/MetaPopProject/Data/",land_cover,".csv"))
   # Sum across little segments for each line
   dist=aggregate(seg_dist~site1*site2, data=segs, FUN=sum)
   
-  # Convert to meters
-  dist[,3]=dist[,3] / 100
+  # Convert to kilometers
+  dist[,3]=dist[,3] / 100000
   as.data.frame(dist)
 }
 
