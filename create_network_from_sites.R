@@ -6,7 +6,7 @@
 #
 # Written by Travis Gallo and Mason Fidino
 # 8/8/2016
-# Last Updated: 8/10/16
+# Last Updated: 11/14/2016
 ################################
 
 # Step 1: Creating a network of lines between sites 
@@ -78,7 +78,7 @@ write.table(all_features_df@data, "T:/PEOPLE/TravisGallo/MetaPopProject/Data/all
 
 
 
-land_covers=c("developed_openspace","developed_high", "developed_mid", "greenspace", "water", "agriculture")
+land_covers=c("developed_openspace","developed_high", "developed_mid", "greenspace", "water", "agriculture", "total_seg_dist")
 
 # Currently set up to just work with developed open space
 line_dist=vector("list", length = length(land_covers))
@@ -103,6 +103,38 @@ for(i in 1:length(all_d_mats)){
               paste0("T:/PEOPLE/TravisGallo/MetaPopProject/Data/", land_covers[i], "_dmat.txt"),
               sep = "\t")
 }
+
+# list of sites that fall within species-specific dispersal distances
+
+# natal dispersal distance from literature rounded to nearest "5"
+raccoon=15
+coyote=65
+fox=20
+deer=10
+opossum=5
+rabbit=5
+skunk=5
+# total distance between points
+# Check directory
+dm=read.csv("T:/PEOPLE/Travis Gallo/MetaPopProject/Data/total_seg_dist_dmat.txt",sep = "\t")
+# sites that are within the natal dispersal distance
+dm_raccoon=apply(dm,2,function (x) which(x<=raccoon))
+dm_coyote=apply(dm,2,function (x) which(x<=coyote))
+dm_fox=apply(dm,2,function (x) which(x<=fox))
+dm_deer=apply(dm,2,function (x) which(x<=deer))
+dm_opossum=apply(dm,2,function (x) which(x<=opossum))
+dm_rabbit=apply(dm,2,function (x) which(x<=rabbit))
+dm_skunk=apply(dm,2,function (x) which(x<=skunk))
+# matrix of the number of sites that are kept
+lm=cbind(
+  len_raccoon=sapply(dm_raccoon,FUN=length),
+  len_coyote=sapply(dm_coyote,FUN=length),
+  len_fox=sapply(dm_fox,FUN=length),
+  len_deer=sapply(dm_deer,FUN=length),
+  len_opossum=sapply(dm_opossum,FUN=length),
+  len_rabbit=sapply(dm_rabbit,FUN=length),
+  len_skunk=sapply(dm_skunk,FUN=length)
+)
 
 ### Now that these are saved we can start working on the JAGS code
 
