@@ -126,7 +126,7 @@ dm_opossum=apply(dm,2,function (x) which(x<=opossum))
 dm_rabbit=apply(dm,2,function (x) which(x<=rabbit))
 dm_skunk=apply(dm,2,function (x) which(x<=skunk))
 # matrix of the number of sites that are kept
-lm=cbind(
+s.w.ndd=cbind(
   len_raccoon=sapply(dm_raccoon,FUN=length),
   len_coyote=sapply(dm_coyote,FUN=length),
   len_fox=sapply(dm_fox,FUN=length),
